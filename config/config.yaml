@@ -1,0 +1,35 @@
+
+# copy and set up this workflow: https://github.com/snakemake-workflows/dna-seq-varlociraptor
+#subworkflow:
+#    workdir: "path/to/workdir"
+#    snakefile: "path/to/workdir/workflow/Snakefile"
+#    configfile: "path/to/workdir/config/config.yaml"
+
+
+# path to the sample sheet 
+samples: config/samples.tsv
+
+# path to bam directory
+bam_directory: "path/to/bam_directory"
+
+# path to genome reference
+ref_fasta: "path/to/ref_genome.fasta"
+
+
+# path to the OncoKB (it can be downloaded from https://www.oncokb.org/cancerGenes) 
+OncoKB: "path/to/OncoKB.tsv"
+
+
+# how to install GISTIC2: https://software.broadinstitute.org/cancer/cga/gistic
+# or here https://github.com/ShixiangWang/install_GISTIC
+# consider to use unset DISPLAY option...
+
+params:
+    cnvkit:
+        batch: ""
+        access_param: "-s 10000"
+        call_param: ""
+
+
+oncoprint:
+    title: "Oncoprint Title"
