@@ -1,0 +1,3 @@
+sample_name	target_bed	tumor_purity	sex
+patient_1	INPUT/target_patient_1.bed	0.7	female
+patient_2	INPUT/target_patient_2.bed	0.5	male
