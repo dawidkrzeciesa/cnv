@@ -19,39 +19,21 @@ configfile: "config/config.yaml"
 
 
 samples = pd.read_csv(config["samples"], sep="\t", dtype={"sample_name": str, "target_bed": str}).set_index(["sample_name"], drop=False).sort_index()
+SAMPLES = samples["sample_name"].unique()
 
-
-cnv_targets=pd.read_csv(config["cnv_targets"], sep="\t")
-samples=pd.merge(samples, cnv_targets, on='target_name', how='outer').set_index(["sample_name"], drop=False).sort_index()
-
-GROUP = samples["group"].unique()
-TARGET =samples["target_name"]
-
-
-
-# final rule
-final_input = []
-for i in GROUP:
-    groups = samples.loc[(samples["alias"] == config["aliases"]["tumor"]) & (samples["group"] == i)]
-    sample_name=groups.iloc[0]["sample_name"]
-    
-    # Append file paths
-    file_paths = [f"results/cnvkit/{i}/{sample_name}.cns"]
-    final_input.extend(file_paths)
-
-
+#subworkflow dna_seq_varlociraptor:
+#    workdir: config["subworkflow"]["workdir"]
+#    snakefile:config["subworkflow"]["snakefile"]
+#    configfile: config["subworkflow"]["configfile"]
 
 
 
 rule all:
     input:
-        final_input,
-        #"results/cnvkit/gistic.input.seg",
+        "results/cnvkit/gistic.input.seg",
         "results/oncoprint/tumor_supressor_deletions_only.pdf",
         "results/oncoprint/oncogene_amplifications_only.pdf",
         "results/oncoprint/oncogene_vgp.pdf"
-
-
 
 
 

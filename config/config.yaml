@@ -1,3 +1,4 @@
+
 # copy and set up this workflow: https://github.com/snakemake-workflows/dna-seq-varlociraptor
 #subworkflow:
 #    workdir: "path/to/workdir"
@@ -7,25 +8,16 @@
 
 # path to the sample sheet 
 samples: config/samples.tsv
-cnv_targets: config/cnv_targets.tsv
 
 # path to bam directory
-bam_directory: "INPUT/"
+bam_directory: "path/to/bam_directory"
 
 # path to genome reference
-ref_fasta: "INPUT/ref_genome.fasta"
-
-aliases:
-    tumor: "tumor"
-    normal: "normal"
-
-CNVkit:
-    mode: "batch" # batch, tumor_only, pool
-
+ref_fasta: "path/to/ref_genome.fasta"
 
 
 # path to the OncoKB (it can be downloaded from https://www.oncokb.org/cancerGenes) 
-OncoKB: "INPUT/OncoKB.tsv"
+OncoKB: "path/to/OncoKB.tsv"
 
 
 # how to install GISTIC2: https://software.broadinstitute.org/cancer/cga/gistic
@@ -34,8 +26,8 @@ OncoKB: "INPUT/OncoKB.tsv"
 
 params:
     cnvkit:
+        batch: ""
         access_param: "-s 10000"
-        run_cnvkit: ""
         call_param: ""
 
 
