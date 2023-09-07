@@ -1,3 +1,8 @@
-sample_name	target_bed	tumor_purity	sex
-patient_1	INPUT/target_patient_1.bed	0.7	female
-patient_2	INPUT/target_patient_2.bed	0.5	male
+sample_name	alias	group	platform	purity	panel	umi_read	umi_read_structure	sex	target_name
+patient_1_N	normal	patient_1	ILLUMINA	1				female	target_1
+patient_1_T	tumor	patient_1	ILLUMINA	0.7				female	target_1
+patient_2_N	normal	patient_2	ILLUMINA	1				male	target_2
+patient_2_T	tumor	patient_2	ILLUMINA	0.5				male	target_2
+patient_3_T	tumor	patient_3	ILLUMINA	0.3				male	target_3
+patient_4_N	normal	patient_4	ILLUMINA	1				male	target_4
+patient_4_T	tumor	patient_4	ILLUMINA	0.5				male	target_4

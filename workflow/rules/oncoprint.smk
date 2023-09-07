@@ -1,15 +1,15 @@
 rule filter_oncogene:
     input:
         oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns=("results/cnvkit/cnv_call/{group}.cns"),
+        cnr=("results/cnvkit/cnv_call/{group}.cnr")
     output:
-        cns_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{sample}_oncogene_only.cns",
-        cnr_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{sample}_oncogene_only.cnr"
+        cns_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{group}_oncogene_only.cns",
+        cnr_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{group}_oncogene_only.cnr"
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_oncogene/{sample}.log"
+        "logs/filter_oncogene/{group}.log"
     threads: 1
     script:
         "../scripts/filter_oncogene.py"
@@ -20,15 +20,15 @@ rule filter_oncogene:
 rule filter_tumor_suppressor:
     input:
         oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns=("results/cnvkit/cnv_call/{group}.cns"),
+        cnr=("results/cnvkit/cnv_call/{group}.cnr")
     output:
-        cns_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cns",
-        cnr_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cnr"
+        cns_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{group}_tumor_supressor_only.cns",
+        cnr_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{group}_tumor_supressor_only.cnr"
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_tumor_supressor/{sample}.log"
+        "logs/filter_tumor_supressor/{group}.log"
     threads: 1
     script:
         "../scripts/filter_tumor_supressor.py"
@@ -38,15 +38,15 @@ rule filter_tumor_suppressor:
 rule filter_vgp:
     input:
         oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns=("results/cnvkit/cnv_call/{group}.cns"),
+        cnr=("results/cnvkit/cnv_call/{group}.cnr")
     output:
-        cns_vgp="results/cnvkit/cnv_call/filtered/vgp/{sample}_vgp.cns",
-        cnr_vgp="results/cnvkit/cnv_call/filtered/vgp/{sample}_vgp.cnr"
+        cns_vgp="results/cnvkit/cnv_call/filtered/vgp/{group}_vgp.cns",
+        cnr_vgp="results/cnvkit/cnv_call/filtered/vgp/{group}_vgp.cnr"
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_vgp/{sample}.log"
+        "logs/filter_vgp/{group}.log"
     threads: 1
     script:
         "../scripts/filter_vgp.py"
@@ -59,7 +59,7 @@ rule filter_vgp:
 
 rule build_matrix_tumor_suppressor:
     input:
-        expand("results/cnvkit/cnv_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cns", sample=SAMPLES)
+        expand("results/cnvkit/cnv_call/filtered/tumor_supressor/{group}_tumor_supressor_only.cns", group=GROUP)
     output:
         matrix_tsg = "results/oncoprint/matrix/tumor_supressor_matrix.tsv"
     conda:
@@ -86,7 +86,7 @@ rule oncoprint_tumor_suppressors:
 
 rule build_matrix_oncogene:
     input:
-        expand("results/cnvkit/cnv_call/filtered/oncogene/{sample}_oncogene_only.cns", sample=SAMPLES)
+        expand("results/cnvkit/cnv_call/filtered/oncogene/{group}_oncogene_only.cns", group=GROUP)
     output:
         matrix_tsg = "results/oncoprint/matrix/oncogene_matrix.tsv"
     conda:
@@ -113,7 +113,7 @@ rule oncoprint_oncogene:
 
 rule build_matrix_vgp:
     input:
-        expand("results/cnvkit/cnv_call/filtered/vgp/{sample}_vgp.cns", sample=SAMPLES)
+        expand("results/cnvkit/cnv_call/filtered/vgp/{group}_vgp.cns", group=GROUP)
     output:
         matrix_vgp = "results/oncoprint/matrix/vgp_matrix.tsv"
     conda:
