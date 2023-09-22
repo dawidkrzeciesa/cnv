@@ -173,27 +173,25 @@ rule cnvkit_export_seg:
     input:
         cns=expand("results/cnvkit_call/{sample}.cns", sample=TUMOR_SAMPLES),
     output:
-        "results/cnvkit/segments.seg"
+        "results/cnvkit/segments.seg",
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/segments.log"
+        "logs/cnvkit/segments.log",
     threads: 1
     shell:
         "(cnvkit.py export seg {input.cns} -o {output}) 2>{log}"
 
 
-
-
-rule gistic_get_intput:
+rule gistic_get_input:
     input:
-        "results/cnvkit/segments.seg"
+        "results/cnvkit/segments.seg",
     output:
-        "results/cnvkit/gistic.input.seg"
+        "results/cnvkit/gistic.input.seg",
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/cnvkit/pandas.log"
+        "logs/cnvkit/pandas.log",
     threads: 1
     script:
         "../scripts/gistic2_input.py"
