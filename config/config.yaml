@@ -22,6 +22,16 @@ alias_prefixes:
   tumor: "tumor"
   normal: "normal"
 
+cnvkit:
+  batch: ""
+  access_param: "-s 10000"
+  call_param: ""
+  # This can either be the output of another rule that was imported via
+  # another module (like "get_genome.output" from the dna-seq-varlociraptor
+  # workflow) or the actual path to a reference fasta file (like
+  # "resources/my_genome.fasta"). Please ensure that this is the fasta file
+  # used for creating the BAM files (mapping).
+  fasta: "get_genome.output"
   # This needs to be an event, configured in the dna-seq-varlociraptor
   # workflow, that calls all variants present in the tumor and normal sample.
   # Usually, a catch-all event gathering all the events specified in the

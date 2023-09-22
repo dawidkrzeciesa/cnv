@@ -36,6 +36,41 @@ def get_group_of_sample(sample):
     return samples.loc[samples["sample_name"] == sample, "group"]
 
 
+def get_group_sample_type(group, sample_type):
+    return samples.loc[
+        (samples["group"] == group)
+        & (samples["alias"].str.startswith(config["alias_prefixes"][sample_type])),
+        "sample_name",
+    ]
+
+
+def get_normal_alias_of_group(group):
+    return samples.loc[
+        (samples["group"] == group)
+        & (samples["alias"].str.startswith(config["alias_prefixes"]["normal"])),
+        "alias",
+    ]
+
+
+### input functions
+
+
+def get_cnvkit_batch_input(wildcards, sample_type="tumor", ext="bam"):
+    group = get_group_of_sample(wildcards.sample)
+    sample_name = get_group_sample_type(group, sample_type)
+    if (len(sample_name) == 0) and (sample_type == "normal"):
+        # fall back to a `panel_of_normals` alias, if no matched normal sample is present
+        sample_name = get_group_sample_type(group, "panel_of_normals")
+        if len(sample_name) == 0:
+            # if not even a `panel_of_normal` sample is available, stick the tumor sample
+            # here to be able to automatically trigger the rule with an empty `--normal`
+            # specification via the params.normal lambda function
+            sample_name = get_group_sample_type(group, "tumor")
+    if len(sample_name) == 0:
+        raise AssertionError(
+            f"Group {group} does not have a sample with whose alias has the tumor prefix '{config['alias_prefixes']['tumor']}'"
+        )
+    return f"results/recal/{sample_name}.{ext}"
 
 
 def get_cnvkit_call_input(wildcards):

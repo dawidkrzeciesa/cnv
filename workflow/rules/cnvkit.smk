@@ -1,46 +1,57 @@
 rule cnvkit_access:
     input:
-        config["ref_fasta"],
+        fasta=getattr(rules, config["cnvkit"]["fasta"], config["cnvkit"]["fasta"]),
     output:
         "results/access-mappable.bed",
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/acces/access.log"
+        "logs/cnvkit/acces/access.log",
     params:
-        access_param=config["params"]["cnvkit"]["access_param"]
+        access_param=config["params"]["cnvkit"]["access_param"],
     shell:
         "(cnvkit.py access {input} {params.access_param} -o {output}) 2>{log}"
 
 
-
-
 rule cnvkit_batch:
     input:
-        tumor=config["bam_directory"]+"{sample}_T.sorted.bam",
-        normal=config["bam_directory"]+"{sample}_N.sorted.bam",
-        bai_T=config["bam_directory"]+"{sample}_T.sorted.bai",
-        bai_N=config["bam_directory"]+"{sample}_N.sorted.bai",
-        fasta=config["ref_fasta"],
+        tumor=get_cnvkit_batch_input(),
+        normal=get_cnvkit_batch_input(sample_type="normal"),
+        bai_T=get_cnvkit_batch_input(ext="bai"),
+        bai_N=get_cnvkit_batch_input(sample_type="normal", ext="bai"),
+        fasta=getattr(rules, config["cnvkit"]["fasta"], config["cnvkit"]["fasta"]),
         targets=get_targets,
         access=rules.cnvkit_access.output,
     output:
-        folder=directory("results/cnvkit/{sample}/batch/"),
-        cns="results/cnvkit/{sample}/batch/{sample}_T.sorted.cns",
-        cnr="results/cnvkit/{sample}/batch/{sample}_T.sorted.cnr"
+        cns="results/cnvkit_batch/{sample}.cns",
+        cnr="results/cnvkit_batch/{sample}.cnr",
+        cnn="results/cnvkit_batch/{sample}.cnn",
     params:
-        reference_out="results/cnvkit/{sample}/batch/{sample}_reference.cnn",
+        folder=lambda wc, output: path.dirname(output.cns),
+        normal=lambda wc, input: input.normal if (input.normal != input.tumor) else "",
         batch=config["params"]["cnvkit"]["batch"],
-        chr_sex=get_chr_sex
+        chr_sex=get_chr_sex,
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/batch/{sample}.log"
+        "logs/cnvkit_batch/{sample}.log",
     threads: workflow.cores
     shell:
-        "(cnvkit.py batch {input.tumor} --normal {input.normal} --targets {input.targets} --fasta {input.fasta} "
-        "--output-reference {params.reference_out} --access {input.access} --output-dir {output.folder} "
-        "--diagram --scatter -p {threads} {params.chr_sex} {params.batch}) 2>{log}"
+        "(cnvkit.py batch {input.tumor} "
+        "  --normal {params.normal} "
+        "  --targets {input.targets} "
+        "  --fasta {input.fasta} "
+        "  --output-reference {output.cnn} "
+        "  --access {input.access} "
+        "  --output-dir {params.folder} "
+        "  --diagram "
+        "  --scatter "
+        "  -p {threads} "
+        "  {params.chr_sex} "
+        "  {params.batch}; "
+        " mv {params.cns} {output.cns}; "
+        " mv {params.cnr} {output.cnr}; "
+        ") 2>{log}"
 
 
 ruleorder: cnvkit_call_cns > filter_tumor_suppressor > filter_oncogene > filter_vgp
