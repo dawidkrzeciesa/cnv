@@ -1,11 +1,3 @@
-
-# copy and set up this workflow: https://github.com/snakemake-workflows/dna-seq-varlociraptor
-#subworkflow:
-#    workdir: "path/to/workdir"
-#    snakefile: "path/to/workdir/workflow/Snakefile"
-#    configfile: "path/to/workdir/config/config.yaml"
-
-
 # path to the sample sheet 
 samples: config/samples.tsv
 
@@ -40,4 +32,4 @@ cnvkit:
 
 
 oncoprint:
-    title: "Oncoprint Title"
+  title: "Oncoprint Title"
