@@ -3,6 +3,23 @@ from os import path
 
 import pandas as pd
 
+# read in sample sheet
+
+samples = (
+    pd.read_csv(
+        config["samples"], sep="\t", dtype={"sample_name": str, "target_bed": str}
+    )
+    .set_index(["sample_name"], drop=False)
+    .sort_index()
+)
+
+### set global variables
+
+TUMOR_SAMPLES = samples.loc[
+    samples["alias"].str.startswith(config["alias_prefixes"]["tumor"]), "sample_name"
+]
+
+### helper functions
 
 
 def get_targets(wildcards):
