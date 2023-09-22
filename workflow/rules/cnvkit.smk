@@ -46,45 +46,116 @@ rule cnvkit_batch:
 ruleorder: cnvkit_call_cns > filter_tumor_suppressor > filter_oncogene > filter_vgp
 
 
-rule cnvkit_call_cns:
+rule present_bcf_to_vcf:
     input:
-        "results/cnvkit/{sample}/batch/{sample}_T.sorted.cns"
+        get_varlociraptor_present_bcf,
     output:
-        "results/cnvkit/cnv_call/{sample}.cns"
+        "results/theta2/{sample}.vcf",
+    log:
+        "logs/theta2/{sample}.vcf.log",
+    params:
+        extra="--types snps",
+    wrapper:
+        "v2.6.0/bio/bcftools/view"
+
+
+rule cnvkit_to_theta2:
+    input:
+        cns="results/cnvkit_batch/{sample}.cns",
+        cnn="results/cnvkit_batch/{sample}.cnn",
+        vcf="results/theta2/{sample}.vcf",
+    output:
+        interval_count="results/cnvkit_batch/{sample}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.normal.snp_formatted.txt",
+    log:
+        "logs/theta2/{sample}.input.log",
+    conda:
+        "../envs/cnvkit.yaml"
+    params:
+        tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"],
+        normal_alias=lambda wc: get_normal_alias_of_group(
+            get_group_of_sample(wc.sample)
+        ),
+    shell:
+        "(cnvkit.py export theta "
+        "  --reference {input.cnn} "
+        "  --vcf {output.vcf} "
+        "  --sample-id {params.tumor_alias} "
+        "  --normal-id {params.normal_alias} "
+        "  {input.cns} "
+        ") 2>{log}"
+
+
+rule theta2_purity_estimation:
+    input:
+        interval_count="results/cnvkit_batch/{sample}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.normal.snp_formatted.txt",
+    output:
+        res="results/theta2/{sample}.BEST.results",
+    log:
+        "logs/theta2/{sample}.BEST.log",
+    conda:
+        "../envs/theta2.yaml"
+    params:
+        out_dir=lambda wc, output: path.dirname(output.res),
+    threads: 8
+    shell:
+        "(RunTHetA.py {input.interval_count} "
+        "  --TUMOR_FILE {input.tumor_snps} "
+        "  --NORMAL_FILE {input.normal_snps} "
+        "  --DIR {params.out_dir} "
+        "  --BAF "
+        "  --NUM_PROCESSES {threads} "
+        "  --FORCE "
+        ") 2>{log}"
+
+
+rule theta2_to_cnvkit:
+    input:
+        res="results/theta2/{sample}.BEST.results",
+    output:
+        cns="results/cnvkit_batch/{sample}.purity_adjusted.cns",
+    log:
+        "logs/cnvkit_batch/{sample}.purity_adjusted.log",
+    conda:
+        "../envs/cnvkit.yaml"
+    params:
+        out_dir=lambda wc, output: path.dirname(output.cns),
+    shell:
+        "(cnvkit.py import-theta "
+        "  --output-dir {params.out_dir} "
+        "  {output.cns} "
+        "  {input.res} "
+        ") 2>{log}"
+
+
+rule cnvkit_call:
+    input:
+        cns=get_cnvkit_call_input,
+    output:
+        cns="results/cnvkit_call/{sample}.cns",
     params:
         call_param=config["params"]["cnvkit"]["call_param"],
-        tumor_purity=get_tumor_purity,
+        tumor_purity=get_tumor_purity_setting,
         chr_sex=get_chr_sex,
-        sample_sex=get_sample_sex
+        sample_sex=get_sample_sex,
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/call/{sample}.cns.log"
+        "logs/cnvkit/call/{sample}.cns.log",
     threads: 1
     shell:
-        "(cnvkit.py call {params.chr_sex} -x {params.sample_sex} --drop-low-coverage -m clonal --purity {params.tumor_purity} {input} -o {output}) 2>{log}"
-
-
-
-
-rule cnvkit_call_cnr:
-    input:
-        "results/cnvkit/{sample}/batch/{sample}_T.sorted.cnr"
-    output:
-        "results/cnvkit/cnv_call/{sample}.cnr"
-    params:
-        call_param=config["params"]["cnvkit"]["call_param"],
-        tumor_purity=get_tumor_purity,
-        chr_sex=get_chr_sex,
-        sample_sex=get_sample_sex
-    conda:
-        "../envs/cnvkit.yaml"
-    log:
-        "logs/cnvkit/call/{sample}.cnr.log"
-    threads: 1
-    shell:
-        "(cnvkit.py call {params.chr_sex} -x {params.sample_sex} --drop-low-coverage -m clonal --purity {params.tumor_purity} {input} -o {output}) 2>{log}"
-
+        "(cnvkit.py call "
+        "  {params.chr_sex} "
+        "  -x {params.sample_sex} "
+        "  --drop-low-coverage "
+        "  -m clonal "
+        "  {params.tumor_purity} "
+        "  {input.cns} "
+        "  -o {output.cns} "
+        ") 2>{log}"
 
 
 rule cnvkit_export_seg:

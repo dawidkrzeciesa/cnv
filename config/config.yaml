@@ -18,11 +18,15 @@ onco_kb: "https://www.oncokb.org/api/v1/utils/cancerGeneList.txt"
 # or here https://github.com/ShixiangWang/install_GISTIC
 # consider to use unset DISPLAY option...
 
-params:
-    cnvkit:
-        batch: ""
-        access_param: "-s 10000"
-        call_param: ""
+alias_prefixes:
+  tumor: "tumor"
+  normal: "normal"
+
+  # This needs to be an event, configured in the dna-seq-varlociraptor
+  # workflow, that calls all variants present in the tumor and normal sample.
+  # Usually, a catch-all event gathering all the events specified in the
+  # scenario.yaml file should be used.
+  joint_event: "present"
 
 
 oncoprint:
