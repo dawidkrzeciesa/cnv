@@ -1,16 +1,12 @@
-# Main entrypoint of the workflow. 
-# Please follow the best practices: 
+# Main entrypoint of the workflow.
+# Please follow the best practices:
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
-# in particular regarding the standardized folder structure mentioned there. 
-
-import glob
-from os import path
-
-import pandas as pd
-
+# in particular regarding the standardized folder structure mentioned there.
 
 from snakemake.utils import min_version
+
 min_version("6.5.2")
+
 
 container: "docker://continuumio/miniconda3"
 
@@ -18,14 +14,9 @@ container: "docker://continuumio/miniconda3"
 configfile: "config/config.yaml"
 
 
-samples = pd.read_csv(config["samples"], sep="\t", dtype={"sample_name": str, "target_bed": str}).set_index(["sample_name"], drop=False).sort_index()
-SAMPLES = samples["sample_name"].unique()
-
-#subworkflow dna_seq_varlociraptor:
-#    workdir: config["subworkflow"]["workdir"]
-#    snakefile:config["subworkflow"]["snakefile"]
-#    configfile: config["subworkflow"]["configfile"]
-
+include: "rules/common.smk"
+include: "rules/cnvkit.smk"
+include: "rules/oncoprint.smk"
 
 
 rule all:
@@ -33,11 +24,4 @@ rule all:
         "results/cnvkit/gistic.input.seg",
         "results/oncoprint/tumor_supressor_deletions_only.pdf",
         "results/oncoprint/oncogene_amplifications_only.pdf",
-        "results/oncoprint/oncogene_vgp.pdf"
-
-
-
-
-include: "rules/common.smk"
-include: "rules/cnvkit.smk"
-include: "rules/oncoprint.smk"
+        "results/oncoprint/oncogene_vgp.pdf",
