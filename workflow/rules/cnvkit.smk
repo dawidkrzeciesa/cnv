@@ -89,8 +89,7 @@ rule cnvkit_call_cnr:
 
 rule cnvkit_export_seg:
     input:
-        cns=expand("results/cnvkit/cnv_call/{sample}.cns", sample=SAMPLES),
-        cnr=expand("results/cnvkit/cnv_call/{sample}.cnr", sample=SAMPLES)
+        cns=expand("results/cnvkit_call/{sample}.cns", sample=TUMOR_SAMPLES),
     output:
         "results/cnvkit/segments.seg"
     conda:

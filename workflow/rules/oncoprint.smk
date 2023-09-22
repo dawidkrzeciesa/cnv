@@ -1,11 +1,8 @@
 rule filter_oncogene:
     input:
-        oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns="results/cnvkit_call/{sample}.cns",
     output:
-        cns_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{sample}_oncogene_only.cns",
-        cnr_oncogene="results/cnvkit/cnv_call/filtered/oncogene/{sample}_oncogene_only.cnr"
+        cns_oncogene="results/cnvkit_call/filtered/oncogene/{sample}_oncogene_only.cns",
     conda:
         "../envs/pandas.yaml"
     log:
@@ -19,12 +16,9 @@ rule filter_oncogene:
 
 rule filter_tumor_suppressor:
     input:
-        oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns="results/cnvkit_call/{sample}.cns",
     output:
-        cns_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cns",
-        cnr_tsg="results/cnvkit/cnv_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cnr"
+        cns_tsg="results/cnvkit_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cns",
     conda:
         "../envs/pandas.yaml"
     log:
@@ -37,12 +31,9 @@ rule filter_tumor_suppressor:
 
 rule filter_vgp:
     input:
-        oncokb=config["OncoKB"],
-        cns=("results/cnvkit/cnv_call/{sample}.cns"),
-        cnr=("results/cnvkit/cnv_call/{sample}.cnr")
+        cns="results/cnvkit_call/{sample}.cns",
     output:
-        cns_vgp="results/cnvkit/cnv_call/filtered/vgp/{sample}_vgp.cns",
-        cnr_vgp="results/cnvkit/cnv_call/filtered/vgp/{sample}_vgp.cnr"
+        cns_vgp="results/cnvkit_call/filtered/vgp/{sample}_vgp.cns",
     conda:
         "../envs/pandas.yaml"
     log:

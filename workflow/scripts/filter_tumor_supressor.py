@@ -1,5 +1,4 @@
 import pandas as pd
-import glob,os
 
 
 ####### OncoKB #######
@@ -23,11 +22,3 @@ cns = cns.explode("gene")
 cns_tsg = cns[cns["gene"].isin(tsg_lst)]
 
 cns_tsg.to_csv(snakemake.output["cns_tsg"], sep="\t", index=False)
-
-####### filter cnr #######
-
-cnr = pd.read_csv(snakemake.input["cnr"], sep="\t", low_memory=False)
-
-cnr_tsg = cnr[cnr["gene"].isin(tsg_lst)]
-
-cnr_tsg.to_csv(snakemake.output["cnr_tsg"], sep="\t", index=False)
