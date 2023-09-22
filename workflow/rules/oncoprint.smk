@@ -1,43 +1,52 @@
+rule get_onco_kb:
+    output:
+        "resources/onco_kb/cancerGeneList.txt",
+    params:
+        onco_kb_download_link=config["onco_kb"],
+    shell:
+        "wget -o {output} {params.onco_kb_download_link}"
+
+
 rule filter_oncogene:
     input:
+        oncokb="resources/onco_kb/cancerGeneList.txt",
         cns="results/cnvkit_call/{sample}.cns",
     output:
         cns_oncogene="results/cnvkit_call/filtered/oncogene/{sample}_oncogene_only.cns",
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_oncogene/{sample}.log"
+        "logs/filter_oncogene/{sample}.log",
     threads: 1
     script:
         "../scripts/filter_oncogene.py"
 
 
-
-
 rule filter_tumor_suppressor:
     input:
+        oncokb="resources/onco_kb/cancerGeneList.txt",
         cns="results/cnvkit_call/{sample}.cns",
     output:
         cns_tsg="results/cnvkit_call/filtered/tumor_supressor/{sample}_tumor_supressor_only.cns",
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_tumor_supressor/{sample}.log"
+        "logs/filter_tumor_supressor/{sample}.log",
     threads: 1
     script:
         "../scripts/filter_tumor_supressor.py"
 
 
-
 rule filter_vgp:
     input:
+        oncokb="resources/onco_kb/cancerGeneList.txt",
         cns="results/cnvkit_call/{sample}.cns",
     output:
         cns_vgp="results/cnvkit_call/filtered/vgp/{sample}_vgp.cns",
     conda:
         "../envs/pandas.yaml"
     log:
-        "logs/filter_vgp/{sample}.log"
+        "logs/filter_vgp/{sample}.log",
     threads: 1
     script:
         "../scripts/filter_vgp.py"

@@ -9,15 +9,9 @@
 # path to the sample sheet 
 samples: config/samples.tsv
 
-# path to bam directory
-bam_directory: "path/to/bam_directory"
-
-# path to genome reference
-ref_fasta: "path/to/ref_genome.fasta"
-
-
-# path to the OncoKB (it can be downloaded from https://www.oncokb.org/cancerGenes) 
-OncoKB: "path/to/OncoKB.tsv"
+# download link for the OncoKB, please ensure you comply with the license and
+# cite OncoKB correctly, see: https://www.oncokb.org/apiAccess
+onco_kb: "https://www.oncokb.org/api/v1/utils/cancerGeneList.txt"
 
 
 # how to install GISTIC2: https://software.broadinstitute.org/cancer/cga/gistic
