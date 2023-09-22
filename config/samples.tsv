@@ -1,3 +1,5 @@
-sample_name	target_bed	tumor_purity	sex
-patient_1	INPUT/target_patient_1.bed	0.7	female
-patient_2	INPUT/target_patient_2.bed	0.5	male
+sample_name	group	alias	target_bed	tumor_purity	sex
+p_1_t	patient_1	tumor	INPUT/target_patient_1.bed	0.7	female
+p_t_n	patient_1	normal	INPUT/target_patient_1.bed	0.7	female
+p_2_t	patient_2	tumor	INPUT/target_patient_2.bed	0.5	male
+p_2_n	patient_2	normal	INPUT/target_patient_2.bed	0.5	male
