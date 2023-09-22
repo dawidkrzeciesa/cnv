@@ -1,6 +1,4 @@
 import pandas as pd
-import glob,os
-
 
 df = pd.read_csv(snakemake.input[0], sep="\t")
 
