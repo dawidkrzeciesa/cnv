@@ -15,17 +15,18 @@ alias_prefixes:
   normal: "normal"
   panel_of_normals: "panel_of_normals"
 
+# One option here is an actual path to a reference fasta file (like
+# "resources/my_genome.fasta"). But you can also ensure that this key gets set
+# in an encompassing workflow that loads this workflow as a module, for example
+# by assigning the path of the reference creating by another imported module
+# that was used for creating the BAM files (mapping). Just assign it to:
+# config["ref"] = "path/to/ref.fasta"
+ref: "resources/my_genome.fasta"
 
 cnvkit:
   batch: ""
   access_param: "-s 10000"
   call_param: ""
-  # This can either be the output of another rule that was imported via
-  # another module (like "get_genome.output" from the dna-seq-varlociraptor
-  # workflow) or the actual path to a reference fasta file (like
-  # "resources/my_genome.fasta"). Please ensure that this is the fasta file
-  # used for creating the BAM files (mapping).
-  fasta: "get_genome.output"
   # This needs to be an event, configured in the dna-seq-varlociraptor
   # workflow, that calls all variants present in the tumor and normal sample.
   # Usually, a catch-all event gathering all the events specified in the

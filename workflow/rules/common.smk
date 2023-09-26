@@ -95,7 +95,11 @@ def get_cnvkit_call_input(wildcards):
     if len(get_tumor_purity_setting(wildcards.sample)) == 0:
         return f"results/cnvkit_batch/{wildcards.sample}.purity_adjusted.cns"
     else:
-        return f"results/cnvkit_batch/{wildcards.sample}.cns"
+
+def get_reference(wildcards):
+    return config["ref"]
+
+
 
 
 def get_varlociraptor_present_bcf(wildcards):

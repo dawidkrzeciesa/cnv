@@ -1,6 +1,6 @@
 rule cnvkit_access:
     input:
-        fasta=getattr(rules, config["cnvkit"]["fasta"], config["cnvkit"]["fasta"]),
+        fasta=get_reference, 
     output:
         "results/access-mappable.bed",
     conda:
@@ -19,7 +19,7 @@ rule cnvkit_batch:
         normal=get_cnvkit_batch_input(sample_type="normal"),
         bai_T=get_cnvkit_batch_input(ext="bai"),
         bai_N=get_cnvkit_batch_input(sample_type="normal", ext="bai"),
-        fasta=getattr(rules, config["cnvkit"]["fasta"], config["cnvkit"]["fasta"]),
+        fasta=get_reference,
         targets=get_targets,
         access=rules.cnvkit_access.output,
     output:
