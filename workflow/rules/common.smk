@@ -110,7 +110,7 @@ def get_cnvkit_batch_input(wildcards, sample_type="tumor", ext="bam"):
         sample_name = samples.loc[
             samples["alias"].str.startswith("panel_of_normals"),
             "sample_name"
-        ].squeeze
+        ].squeeze()
         if len(sample_name) == 0:
             # if not even a `panel_of_normal` sample is available, stick the tumor sample
             # here to be able to automatically trigger the rule with an empty `--normal`
