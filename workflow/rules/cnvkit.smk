@@ -23,9 +23,9 @@ rule cnvkit_batch:
         targets=get_targets,
         access=rules.cnvkit_access.output,
     output:
-        cns="results/cnvkit_batch/{sample}.cns",
-        cnr="results/cnvkit_batch/{sample}.cnr",
-        cnn="results/cnvkit_batch/{sample}.cnn",
+        cns="results/cnvkit_batch/{sample}.{group}.cns",
+        cnr="results/cnvkit_batch/{sample}.{group}.cnr",
+        cnn="results/cnvkit_batch/{sample}.{group}.cnn",
     params:
         folder=lambda wc, output: path.dirname(output.cns),
         batch=config["cnvkit"]["batch"],
@@ -60,9 +60,9 @@ rule present_bcf_to_vcf:
     input:
         get_varlociraptor_present_bcf,
     output:
-        "results/theta2/{sample}.vcf",
+        "results/theta2/{sample}.{group}.vcf",
     log:
-        "logs/theta2/{sample}.vcf.log",
+        "logs/theta2/{sample}.{group}.vcf.log",
     params:
         extra="--types snps",
     wrapper:
@@ -71,15 +71,15 @@ rule present_bcf_to_vcf:
 
 rule cnvkit_to_theta2:
     input:
-        cns="results/cnvkit_batch/{sample}.cns",
-        cnn="results/cnvkit_batch/{sample}.cnn",
-        vcf="results/theta2/{sample}.vcf",
+        cns="results/cnvkit_batch/{sample}.{group}.cns",
+        cnn="results/cnvkit_batch/{sample}.{group}.cnn",
+        vcf="results/theta2/{sample}.{group}.vcf",
     output:
-        interval_count="results/cnvkit_batch/{sample}.interval_count",
-        tumor_snps="results/cnvkit_batch/{sample}.tumor.snp_formatted.txt",
-        normal_snps="results/cnvkit_batch/{sample}.normal.snp_formatted.txt",
+        interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.{group}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.{group}.normal.snp_formatted.txt",
     log:
-        "logs/theta2/{sample}.input.log",
+        "logs/theta2/{sample}.{group}.input.log",
     conda:
         "../envs/cnvkit.yaml"
     params:
@@ -99,13 +99,13 @@ rule cnvkit_to_theta2:
 
 rule theta2_purity_estimation:
     input:
-        interval_count="results/cnvkit_batch/{sample}.interval_count",
-        tumor_snps="results/cnvkit_batch/{sample}.tumor.snp_formatted.txt",
-        normal_snps="results/cnvkit_batch/{sample}.normal.snp_formatted.txt",
+        interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.{group}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.{group}.normal.snp_formatted.txt",
     output:
-        res="results/theta2/{sample}.BEST.results",
+        res="results/theta2/{sample}.{group}.BEST.results",
     log:
-        "logs/theta2/{sample}.BEST.log",
+        "logs/theta2/{sample}.{group}.BEST.log",
     conda:
         "../envs/theta2.yaml"
     params:
@@ -124,11 +124,11 @@ rule theta2_purity_estimation:
 
 rule theta2_to_cnvkit:
     input:
-        res="results/theta2/{sample}.BEST.results",
+        res="results/theta2/{sample}.{group}.BEST.results",
     output:
-        cns="results/cnvkit_batch/{sample}.purity_adjusted.cns",
+        cns="results/cnvkit_batch/{sample}.{group}.purity_adjusted.cns",
     log:
-        "logs/cnvkit_batch/{sample}.purity_adjusted.log",
+        "logs/cnvkit_batch/{sample}.{group}.purity_adjusted.log",
     conda:
         "../envs/cnvkit.yaml"
     params:
@@ -145,7 +145,7 @@ rule cnvkit_call:
     input:
         cns=get_cnvkit_call_input,
     output:
-        cns="results/cnvkit_call/{sample}.cns",
+        cns="results/cnvkit_call/{sample}.{group}.cns",
     params:
         call_param=config["cnvkit"]["call_param"],
         tumor_purity=get_tumor_purity_setting,
@@ -154,7 +154,7 @@ rule cnvkit_call:
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/call/{sample}.cns.log",
+        "logs/cnvkit/call/{sample}.{group}.cns.log",
     threads: 1
     shell:
         "(cnvkit.py call "
