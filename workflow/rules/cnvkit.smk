@@ -15,10 +15,10 @@ rule cnvkit_access:
 
 rule cnvkit_batch:
     input:
-        tumor=get_cnvkit_batch_input(),
-        normal=get_cnvkit_batch_input(sample_type="normal"),
-        bai_T=get_cnvkit_batch_input(ext="bai"),
-        bai_N=get_cnvkit_batch_input(sample_type="normal", ext="bai"),
+        tumor=get_cnvkit_batch_input,
+        normal=lambda w: get_cnvkit_batch_input(w, sample_type="normal"),
+        bai_T=lambda w: get_cnvkit_batch_input(w, ext="bai"),
+        bai_N=lambda w: get_cnvkit_batch_input(w, sample_type="normal", ext="bai"),
         fasta=get_reference,
         targets=get_targets,
         access=rules.cnvkit_access.output,
@@ -28,12 +28,14 @@ rule cnvkit_batch:
         cnn="results/cnvkit_batch/{sample}.{group}.cnn",
     params:
         folder=lambda wc, output: path.dirname(output.cns),
+        basename=lambda wc, input: path.splitext(path.basename(input.tumor))[0],
+        normal=lambda wc, input: input.normal if (input.normal != input.tumor) else " ",
         batch=config["cnvkit"]["batch"],
         chr_sex=get_chr_sex,
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit_batch/{sample}.log",
+        "logs/cnvkit_batch/{sample}.{group}.log",
     threads: workflow.cores
     shell:
         "(cnvkit.py batch {input.tumor} "
@@ -48,12 +50,9 @@ rule cnvkit_batch:
         "  -p {threads} "
         "  {params.chr_sex} "
         "  {params.batch}; "
-        " mv {params.cns} {output.cns}; "
-        " mv {params.cnr} {output.cnr}; "
+        " mv {params.folder}/{params.basename}.cns {output.cns}; "
+        " mv {params.folder}/{params.basename}.cnr {output.cnr}; "
         ") 2>{log}"
-
-
-ruleorder: cnvkit_call_cns > filter_tumor_suppressor > filter_oncogene > filter_vgp
 
 
 rule present_bcf_to_vcf:
@@ -84,13 +83,11 @@ rule cnvkit_to_theta2:
         "../envs/cnvkit.yaml"
     params:
         tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"],
-        normal_alias=lambda wc: get_normal_alias_of_group(
-            get_group_of_sample(wc.sample)
-        ),
+        normal_alias=lambda wc: get_normal_alias_of_group(wc.group),
     shell:
         "(cnvkit.py export theta "
         "  --reference {input.cnn} "
-        "  --vcf {output.vcf} "
+        "  --vcf {input.vcf} "
         "  --sample-id {params.tumor_alias} "
         "  --normal-id {params.normal_alias} "
         "  {input.cns} "
