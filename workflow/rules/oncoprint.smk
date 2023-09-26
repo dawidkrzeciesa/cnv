@@ -4,7 +4,7 @@ rule get_onco_kb:
     params:
         onco_kb_download_link=config["onco_kb"],
     shell:
-        "wget -o {output} {params.onco_kb_download_link}"
+        "wget -O {output} {params.onco_kb_download_link}"
 
 
 rule filter_oncogene:
