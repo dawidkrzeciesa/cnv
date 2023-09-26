@@ -15,6 +15,12 @@ samples = (
 
 ### set global variables
 
+TUMOR_SAMPLES = set(
+    samples.loc[
+        samples["alias"].str.startswith(config["alias_prefixes"]["tumor"]), "sample_name"
+    ]
+)
+
 ### wildcard constraints
 
 wildcard_constraints:

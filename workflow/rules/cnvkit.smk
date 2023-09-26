@@ -170,7 +170,9 @@ rule cnvkit_call:
 
 rule cnvkit_export_seg:
     input:
-        cns=expand("results/cnvkit_call/{sample}.cns", sample=TUMOR_SAMPLES),
+        cns=expand("results/cnvkit_call/{sample_group}.cns",
+            sample_group=get_tumor_sample_group_pairs()
+        ),
     output:
         "results/cnvkit/segments.seg",
     conda:
