@@ -19,7 +19,7 @@ include: "rules/cnvkit.smk"
 include: "rules/oncoprint.smk"
 
 
-rule all:
+rule cnvkit:
     input:
         "results/cnvkit/gistic.input.seg",
         "results/oncoprint/tumor_supressor_deletions_only.pdf",
