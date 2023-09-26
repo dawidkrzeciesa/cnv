@@ -15,9 +15,11 @@ samples = (
 
 ### set global variables
 
-TUMOR_SAMPLES = samples.loc[
-    samples["alias"].str.startswith(config["alias_prefixes"]["tumor"]), "sample_name"
-]
+### wildcard constraints
+
+wildcard_constraints:
+    sample="|".join(samples["sample_name"].drop_duplicates()),
+    group="|".join(samples["group"].drop_duplicates()),
 
 ### helper functions
 
