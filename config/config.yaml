@@ -13,6 +13,8 @@ onco_kb: "https://www.oncokb.org/api/v1/utils/cancerGeneList.txt"
 alias_prefixes:
   tumor: "tumor"
   normal: "normal"
+  panel_of_normals: "panel_of_normals"
+
 
 cnvkit:
   batch: ""
