@@ -8,7 +8,7 @@ rule cnvkit_access:
     log:
         "logs/cnvkit/acces/access.log",
     params:
-        access_param=config["params"]["cnvkit"]["access_param"],
+        access_param=config["cnvkit"]["access_param"],
     shell:
         "(cnvkit.py access {input} {params.access_param} -o {output}) 2>{log}"
 
@@ -28,8 +28,7 @@ rule cnvkit_batch:
         cnn="results/cnvkit_batch/{sample}.cnn",
     params:
         folder=lambda wc, output: path.dirname(output.cns),
-        normal=lambda wc, input: input.normal if (input.normal != input.tumor) else "",
-        batch=config["params"]["cnvkit"]["batch"],
+        batch=config["cnvkit"]["batch"],
         chr_sex=get_chr_sex,
     conda:
         "../envs/cnvkit.yaml"
@@ -148,7 +147,7 @@ rule cnvkit_call:
     output:
         cns="results/cnvkit_call/{sample}.cns",
     params:
-        call_param=config["params"]["cnvkit"]["call_param"],
+        call_param=config["cnvkit"]["call_param"],
         tumor_purity=get_tumor_purity_setting,
         chr_sex=get_chr_sex,
         sample_sex=get_sample_sex,
