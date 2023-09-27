@@ -36,7 +36,7 @@ rule cnvkit_batch:
         "../envs/cnvkit.yaml"
     log:
         "logs/cnvkit_batch/{sample}.{group}.log",
-    threads: workflow.cores
+    threads: 64
     shell:
         "(cnvkit.py batch {input.tumor} "
         "  --normal {params.normal} "
