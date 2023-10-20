@@ -140,7 +140,7 @@ def get_cnvkit_batch_input(wildcards, sample_type="tumor", ext="bam"):
 
 def get_cnvkit_call_input(wildcards):
     # no purity specified for this sample
-    if len(get_tumor_purity_setting(wildcards.sample)) == 0:
+    if len(get_tumor_purity_setting(wildcards)) == 0:
         return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.purity_adjusted.cns"
     else:
         return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.cns"
