@@ -2,6 +2,7 @@ import glob
 from os import path
 
 import pandas as pd
+import math
 
 # read in sample sheet
 
@@ -38,9 +39,9 @@ def get_tumor_purity_setting(wildcards):
             & (samples["group"] == wildcards.group),
             'tumor_purity'
         ].squeeze()
-        return f"--purity {purity}"
-    else:
-        return ""
+        if not math.isnan(purity):
+            return f"--purity {purity}"
+    return ""
 
 
 def get_chr_sex(wildcards):
@@ -78,15 +79,14 @@ def get_normal_alias_of_group(group):
     ].squeeze()
     if len(normal_alias) == 0:
         normal_alias = samples.loc[
-            (samples["group"] == group)
-            & (samples["alias"].str.startswith(config["alias_prefixes"]["panel_of_normals"])),
+            samples["alias"].str.startswith(config["alias_prefixes"]["panel_of_normals"]),
             "alias",
         ].squeeze()
-    if len(normal_alias) > 1:
-        raise ValueError(f"Ambiguous normal sample for group {group}. Found more than one normal alias:\n {normal_alias}")
+    if type(normal_alias) != str and len(normal_alias) > 1:
+        raise ValueError(f"Ambiguous normal sample for group '{group}'. Found more than one normal alias:\n {normal_alias}")
     if len(normal_alias) == 0:
         raise ValueError(
-            f"No normal alias available for group {group}, but this is needed for purity estimation\n"
+            f"No normal alias available for group '{group}', but this is needed for purity estimation\n"
             "with theta2, when you do not specify a tumor_purity in the samples.tsv file."
         )
     else:
@@ -123,7 +123,7 @@ def get_cnvkit_batch_input(wildcards, sample_type="tumor", ext="bam"):
     if (len(sample_name) == 0) and (sample_type == "normal"):
         # fall back to a `panel_of_normals` alias, if no matched normal sample is present
         sample_name = samples.loc[
-            samples["alias"].str.startswith("panel_of_normals"),
+            samples["alias"].str.startswith(config["alias_prefixes"]["panel_of_normals"]),
             "sample_name"
         ].squeeze()
         if len(sample_name) == 0:
