@@ -71,11 +71,26 @@ def get_group_sample_type(group, sample_type):
 
 
 def get_normal_alias_of_group(group):
-    return samples.loc[
+    normal_alias = samples.loc[
         (samples["group"] == group)
         & (samples["alias"].str.startswith(config["alias_prefixes"]["normal"])),
         "alias",
     ].squeeze()
+    if len(normal_alias) == 0:
+        normal_alias = samples.loc[
+            (samples["group"] == group)
+            & (samples["alias"].str.startswith(config["alias_prefixes"]["panel_of_normals"])),
+            "alias",
+        ].squeeze()
+    if len(normal_alias) > 1:
+        raise ValueError(f"Ambiguous normal sample for group {group}. Found more than one normal alias:\n {normal_alias}")
+    if len(normal_alias) == 0:
+        raise ValueError(
+            f"No normal alias available for group {group}, but this is needed for purity estimation\n"
+            "with theta2, when you do not specify a tumor_purity in the samples.tsv file."
+        )
+    else:
+        return normal_alias
 
 
 def get_sample_sex(wildcards):
