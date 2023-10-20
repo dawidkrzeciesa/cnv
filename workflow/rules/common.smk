@@ -37,7 +37,7 @@ def get_tumor_purity_setting(wildcards):
             (samples["sample_name"] == wildcards.sample)
             & (samples["group"] == wildcards.group),
             'tumor_purity'
-        ]
+        ].squeeze()
         return f"--purity {purity}"
     else:
         return ""
