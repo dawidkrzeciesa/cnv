@@ -75,7 +75,7 @@ def get_normal_alias_of_group(group):
         (samples["group"] == group)
         & (samples["alias"].str.startswith(config["alias_prefixes"]["normal"])),
         "alias",
-    ]
+    ].squeeze()
 
 
 def get_sample_sex(wildcards):

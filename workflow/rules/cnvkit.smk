@@ -82,7 +82,7 @@ rule cnvkit_to_theta2:
     conda:
         "../envs/cnvkit.yaml"
     params:
-        tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"],
+        tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"].squeeze(),
         normal_alias=lambda wc: get_normal_alias_of_group(wc.group),
     shell:
         "(cnvkit.py export theta "
