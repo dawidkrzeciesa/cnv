@@ -55,24 +55,24 @@ rule cnvkit_batch:
         ") 2>{log}"
 
 
-rule present_bcf_to_vcf:
+rule genotype_snvs_to_vcf:
     input:
-        get_varlociraptor_present_bcf,
+        bcf=get_varlociraptor_present_bcf,
     output:
-        "results/theta2/{sample}.{group}.vcf",
+        vcf="results/theta2/{sample}.{group}.genotypes.vcf",
     log:
-        "logs/theta2/{sample}.{group}.vcf.log",
-    params:
-        extra="--types snps",
-    wrapper:
-        "v2.6.0/bio/bcftools/view"
+        "logs/theta2/{sample}.{group}.genotypes.vcf.log",
+    conda:
+        "../envs/varlociraptor.yaml"
+    shell:
+        "varlociraptor genotype < {input.bcf} | bcftools view -O v -o {output.vcf}"
 
 
 rule cnvkit_to_theta2:
     input:
         cns="results/cnvkit_batch/{sample}.{group}.cns",
         cnn="results/cnvkit_batch/{sample}.{group}.cnn",
-        vcf="results/theta2/{sample}.{group}.vcf",
+        vcf="results/theta2/{sample}.{group}.genotypes.vcf",
     output:
         interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
         tumor_snps="results/cnvkit_batch/{sample}.{group}.tumor.snp_formatted.txt",

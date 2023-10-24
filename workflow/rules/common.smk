@@ -156,4 +156,4 @@ def get_targets(wildcards):
 
 def get_varlociraptor_present_bcf(wildcards):
     event = config["cnvkit"]["joint_event"]
-    return f"results/final-calls/{wildcards.group}.{event}.fdr-controlled.bcf"
+    return f"results/calls/{wildcards.group}.SNV.{event}.fdr-controlled.bcf"

@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - varlociraptor =8.3
+  - vega-lite-cli =3.4
+  - bcftools =1.16
