@@ -151,7 +151,11 @@ def get_reference(wildcards):
 
 
 def get_targets(wildcards):
-    return samples.loc[wildcards.sample, "target_bed"]
+    return samples.loc[
+        (samples["sample_name"] == wildcards.sample)
+            & (samples["group"] == wildcards.group),
+        "target_bed"
+    ]
 
 
 def get_varlociraptor_present_bcf(wildcards):
