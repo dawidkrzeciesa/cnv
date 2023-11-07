@@ -71,7 +71,6 @@ rule genotype_snvs_to_vcf:
 rule cnvkit_to_theta2:
     input:
         cns="results/cnvkit_batch/{sample}.{group}.cns",
-        cnn="results/cnvkit_batch/{sample}.{group}.cnn",
         vcf="results/theta2/{sample}.{group}.genotypes.vcf",
     output:
         interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
@@ -86,7 +85,6 @@ rule cnvkit_to_theta2:
         normal_alias=lambda wc: get_normal_alias_of_group(wc.group),
     shell:
         "(cnvkit.py export theta "
-        "  --reference {input.cnn} "
         "  --vcf {input.vcf} "
         "  --sample-id {params.tumor_alias} "
         "  --normal-id {params.normal_alias} "
