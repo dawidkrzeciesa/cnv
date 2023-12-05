@@ -83,12 +83,17 @@ rule cnvkit_to_theta2:
     params:
         tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"].squeeze(),
         normal_alias=lambda wc: get_normal_alias_of_group(wc.group),
+        tumor_basename=lambda wc, output: path.basename(output.tumor_snps),
+        normal_basename=lambda wc, output: path.basename(output.normal_snps),
     shell:
         "(cnvkit.py export theta "
         "  --vcf {input.vcf} "
         "  --sample-id {params.tumor_alias} "
         "  --normal-id {params.normal_alias} "
-        "  {input.cns} "
+        "  --output {output.interval_count} "
+        "  {input.cns}; "
+        "  mv {params.tumor_basename} {output.tumor_snps}; "
+        "  mv {params.normal_basename} {output.normal_snps} "
         ") 2>{log}"
 
 
