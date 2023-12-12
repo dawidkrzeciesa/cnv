@@ -22,11 +22,26 @@ TUMOR_SAMPLES = set(
     ]
 )
 
+TUMOR_ALIASES = set(
+    samples.loc[
+        samples["alias"].str.startswith(config["alias_prefixes"]["tumor"]), "alias"
+    ]
+)
+
+NORMAL_ALIASES = set(
+    samples.loc[
+        samples["alias"].str.startswith(config["alias_prefixes"]["normal"]), "alias"
+    ]
+)
+
 ### wildcard constraints
 
 wildcard_constraints:
     sample="|".join(samples["sample_name"].drop_duplicates()),
     group="|".join(samples["group"].drop_duplicates()),
+    tumor_alias="|".join(TUMOR_ALIASES),
+    normal_alias="|".join(NORMAL_ALIASES),
+    alias="|".join( [*TUMOR_ALIASES, *NORMAL_ALIASES] ),
 
 ### helper functions
 
@@ -102,8 +117,8 @@ def get_sample_sex(wildcards):
     return sex
 
 
-def get_tumor_sample_group_pairs():
-    pairs = []
+def get_tumor_sample_group_aliases_combinations():
+    combinations = []
     for tumor_sample in TUMOR_SAMPLES:
         groups = samples.loc[samples["sample_name"] == tumor_sample, "group"]
         if len(groups) == 0:
@@ -111,8 +126,15 @@ def get_tumor_sample_group_pairs():
         else:
             for g in groups:
                 if is_tumor_sample_in_group(tumor_sample, g):
-                    pairs.append(f"{tumor_sample}.{g}")
-    return pairs
+                    tumor_alias = samples.loc[
+                        (samples["group"] == g) &
+                        (samples["sample_name"] == tumor_sample) &
+                        (samples["alias"].str.startswith(config["alias_prefixes"]["tumor"])),
+                        "alias"
+                    ].squeeze()
+                    normal_alias = get_normal_alias_of_group(g)
+                    combinations.append(f"{tumor_sample}.{g}.{tumor_alias}.{normal_alias}")
+    return combinations
 
 
 ### input functions
@@ -141,9 +163,9 @@ def get_cnvkit_batch_input(wildcards, sample_type="tumor", ext="bam"):
 def get_cnvkit_call_input(wildcards):
     # no purity specified for this sample
     if len(get_tumor_purity_setting(wildcards)) == 0:
-        return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.purity_adjusted.cns"
+        return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.{wildcards.tumor_alias}.{wildcards.normal_alias}.purity_adjusted.cns",
     else:
-        return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.cns"
+        return f"results/cnvkit_batch/{wildcards.sample}.{wildcards.group}.{wildcards.tumor_alias}.{wildcards.normal_alias}.cns",
 
 
 def get_reference(wildcards):

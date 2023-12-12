@@ -68,28 +68,96 @@ rule genotype_snvs_to_vcf:
         "varlociraptor genotype < {input.bcf} | bcftools view -O v -o {output.vcf}"
 
 
+rule create_allele_depth_annotation_per_sample:
+    input:
+        vcf="results/theta2/{sample}.{group}.genotypes.vcf",
+    output:
+        tsv="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv",
+    log:
+        "logs/theta2/{sample}.{group}.{alias}.allele_depths.log",
+    conda:
+        "../envs/vembrane.yaml"
+    shell:
+        "vembrane table "
+        "  --header none "
+        "  'CHROM,POS,REF,ALT,"
+        '",".join([ str(int(FORMAT["DP"]["{wildcards.alias}"] - round(FORMAT["DP"]["{wildcards.alias}"] * FORMAT["AF"]["{wildcards.alias}"]))),'
+        'str(int(round(FORMAT["DP"]["{wildcards.alias}"] * FORMAT["AF"]["{wildcards.alias}"]))) ]).replace(" ","")'
+        "' "
+        "{input.vcf} "
+        ">{output.tsv} "
+        "2>{log} "
+
+
+rule bgzip_and_tabix_allele_depths:
+    input:
+        tsv="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv",
+    output:
+        gz="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz",
+        tbi="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz.tbi",
+    log:
+        "logs/theta2/{sample}.{group}.{alias}.bgzip_and_tabix.log",
+    conda:
+        "../envs/bcftools.yaml"
+    shell:
+        "( bgzip {input.tsv}; "
+        "  tabix -b 2 -e 2 {output.gz};"
+        ") 2>{log}"
+
+
+rule annotate_tumor_allele_depth:
+    input:
+        vcf="results/theta2/{sample}.{group}.genotypes.vcf",
+        tsv="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz",
+        tbi="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz.tbi",
+    output:
+        vcf="results/theta2/{sample}.{group}.genotypes.{alias}_ad.vcf",
+    log:
+        "logs/theta2/{sample}.{group}.genotypes.{alias}_ad.log",
+    conda:
+        "../envs/bcftools.yaml"
+    shell:
+        "( bcftools annotate "
+        "    --annotations {input.tsv} "
+        "    --samples {wildcards.alias} "
+        "    --columns CHROM,POS,REF,ALT,FORMAT/AD "
+        "     --header-line '##FORMAT=<ID=AD,Number=R,Type=Integer,Description=\"Allelic Depth\">' "
+        "    {input.vcf} "
+        "    >{output.vcf} "
+        ") 2>{log}"
+
+
+use rule annotate_tumor_allele_depth as annotate_normal_allele_depth with:
+    input:
+        vcf="results/theta2/{sample}.{group}.genotypes.tumor_ad.vcf",
+        tsv="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz",
+        tbi="results/theta2/{sample}.{group}.{alias}.allele_depths.tsv.gz.tbi",
+    output:
+        vcf="results/theta2/{sample}.{group}.genotypes.{tumor_alias}_ad.{alias}_ad.vcf",
+    log:
+        "logs/theta2/{sample}.{group}.genotypes.{tumor_alias}_ad.{alias}_ad.log",
+
+
 rule cnvkit_to_theta2:
     input:
         cns="results/cnvkit_batch/{sample}.{group}.cns",
-        vcf="results/theta2/{sample}.{group}.genotypes.vcf",
+        vcf="results/theta2/{sample}.{group}.genotypes.{tumor_alias}_ad.{normal_alias}_ad.vcf",
     output:
-        interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
-        tumor_snps="results/cnvkit_batch/{sample}.{group}.tumor.snp_formatted.txt",
-        normal_snps="results/cnvkit_batch/{sample}.{group}.normal.snp_formatted.txt",
+        interval_count="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.normal.snp_formatted.txt",
     log:
-        "logs/theta2/{sample}.{group}.input.log",
+        "logs/theta2/{sample}.{group}.{tumor_alias}.{normal_alias}.input.log",
     conda:
         "../envs/cnvkit.yaml"
     params:
-        tumor_alias=lambda wc: samples.loc[samples["sample_name"] == wc.sample, "alias"].squeeze(),
-        normal_alias=lambda wc: get_normal_alias_of_group(wc.group),
-        tumor_basename=lambda wc, output: path.basename(output.tumor_snps),
-        normal_basename=lambda wc, output: path.basename(output.normal_snps),
+        tumor_basename=lambda wc: f"{wc.sample}.{wc.group}.tumor.snp_formatted.txt",
+        normal_basename=lambda wc: f"{wc.sample}.{wc.group}.normal.snp_formatted.txt",
     shell:
         "(cnvkit.py export theta "
         "  --vcf {input.vcf} "
-        "  --sample-id {params.tumor_alias} "
-        "  --normal-id {params.normal_alias} "
+        "  --sample-id {wildcards.tumor_alias} "
+        "  --normal-id {wildcards.normal_alias} "
         "  --output {output.interval_count} "
         "  {input.cns}; "
         "  mv {params.tumor_basename} {output.tumor_snps}; "
@@ -99,13 +167,13 @@ rule cnvkit_to_theta2:
 
 rule theta2_purity_estimation:
     input:
-        interval_count="results/cnvkit_batch/{sample}.{group}.interval_count",
-        tumor_snps="results/cnvkit_batch/{sample}.{group}.tumor.snp_formatted.txt",
-        normal_snps="results/cnvkit_batch/{sample}.{group}.normal.snp_formatted.txt",
+        interval_count="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.interval_count",
+        tumor_snps="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.tumor.snp_formatted.txt",
+        normal_snps="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.normal.snp_formatted.txt",
     output:
-        res="results/theta2/{sample}.{group}.BEST.results",
+        res="results/theta2/{sample}.{group}.{tumor_alias}.{normal_alias}/{sample}.{group}.{tumor_alias}.{normal_alias}/.BEST.results",
     log:
-        "logs/theta2/{sample}.{group}.BEST.log",
+        "logs/theta2/{sample}.{group}.{tumor_alias}.{normal_alias}.BEST.log",
     conda:
         "../envs/theta2.yaml"
     params:
@@ -119,16 +187,16 @@ rule theta2_purity_estimation:
         "  --BAF "
         "  --NUM_PROCESSES {threads} "
         "  --FORCE "
-        ") 2>{log}"
+        ") &>{log}"
 
 
 rule theta2_to_cnvkit:
     input:
-        res="results/theta2/{sample}.{group}.BEST.results",
+        res="results/theta2/{sample}.{group}.{tumor_alias}.{normal_alias}/{sample}.{group}.{tumor_alias}.{normal_alias}/.BEST.results",
     output:
-        cns="results/cnvkit_batch/{sample}.{group}.purity_adjusted.cns",
+        cns="results/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.purity_adjusted.cns",
     log:
-        "logs/cnvkit_batch/{sample}.{group}.purity_adjusted.log",
+        "logs/cnvkit_batch/{sample}.{group}.{tumor_alias}.{normal_alias}.purity_adjusted.log",
     conda:
         "../envs/cnvkit.yaml"
     params:
@@ -145,7 +213,7 @@ rule cnvkit_call:
     input:
         cns=get_cnvkit_call_input,
     output:
-        cns="results/cnvkit_call/{sample}.{group}.cns",
+        cns="results/cnvkit_call/{sample}.{group}.{tumor_alias}.{normal_alias}.cns",
     params:
         call_param=config["cnvkit"]["call_param"],
         tumor_purity=get_tumor_purity_setting,
@@ -154,7 +222,7 @@ rule cnvkit_call:
     conda:
         "../envs/cnvkit.yaml"
     log:
-        "logs/cnvkit/call/{sample}.{group}.cns.log",
+        "logs/cnvkit/call/{sample}.{group}.{tumor_alias}.{normal_alias}.cns.log",
     threads: 1
     shell:
         "(cnvkit.py call "
@@ -167,11 +235,10 @@ rule cnvkit_call:
         "  -o {output.cns} "
         ") 2>{log}"
 
-
 rule cnvkit_export_seg:
     input:
-        cns=expand("results/cnvkit_call/{sample_group}.cns",
-            sample_group=get_tumor_sample_group_pairs()
+        cns=expand("results/cnvkit_call/{sample_group_aliases}.cns",
+            sample_group_aliases=get_tumor_sample_group_aliases_combinations()
         ),
     output:
         "results/cnvkit/segments.seg",
